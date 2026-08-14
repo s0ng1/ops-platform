@@ -1,0 +1,23 @@
+# Docker 构建上下文排除项（构建上下文为项目根，见 deploy/Dockerfile.api / Dockerfile.web）
+# 版本控制与文档
+.git/
+.gitignore
+docs/
+logs/
+
+# Python 运行产物
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 前端构建产物与依赖（镜像内重新 npm ci + build）
+node_modules/
+frontend/dist/
+
+# 本地运行数据（SQLite 兜底库、Fernet 密钥，绝不能打进镜像）
+backend/data/
+
+# 部署侧敏感文件与离线包产物
+deploy/.env
+deploy/offline/

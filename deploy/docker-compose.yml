@@ -1,0 +1,26 @@
+# 内网运维管理平台 · 依赖中间件
+# 仅 PostgreSQL。Redis 经评估非必须，推迟。
+# 镜像说明：默认 timescale/timescaledb:latest-pg15（第 2 期时序指标需要 TimescaleDB 扩展）；
+# 本机 docker 走代理 127.0.0.1:7897 拉镜像，代理不通时可临时用 postgres:16-alpine 兜底（数据卷不通用，需重建）。
+# 启动：cd deploy && docker compose up -d
+services:
+  db:
+    image: ${OPS_DB_IMAGE:-timescale/timescaledb:latest-pg15}
+    container_name: ops-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${OPS_DB_NAME:-ops}
+      POSTGRES_USER: ${OPS_DB_USER:-ops}
+      POSTGRES_PASSWORD: ${OPS_DB_PASSWORD:?请在 deploy/.env 设置 OPS_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-ops} -d $${POSTGRES_DB:-ops}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  pgdata:

@@ -1,0 +1,60 @@
+/* ===== 设计 Token：全站唯一颜色/间距/圆角/阴影来源 ===== */
+/* 新样式一律使用本文件变量，禁止新增硬编码 hex（大屏/拓扑深色画布除外） */
+:root {
+  /* ---- 品牌色（靛蓝）及阶调 ---- */
+  --op-color-primary: #4f5bd5;
+  --op-color-primary-dark-2: #3f49aa;
+  --op-color-primary-light-3: #828cdf;
+  --op-color-primary-light-5: #a7adea;
+  --op-color-primary-light-7: #cbcff4;
+  --op-color-primary-light-8: #dcdff8;
+  --op-color-primary-light-9: #edeffc;
+
+  /* ---- 中性色（冷调石板灰） ---- */
+  --op-bg-page: #f6f7f9;
+  --op-bg-card: #ffffff;
+  --op-bg-subtle: #f8fafc;
+  --op-bg-hover: #f4f6fd;
+  --op-border: #e5e8ee;
+  --op-border-light: #edf0f4;
+  --op-text-primary: #1d2532;
+  --op-text-secondary: #5a6478;
+  --op-text-tertiary: #8a93a6;
+
+  /* ---- 语义色 ---- */
+  --op-color-success: #16a34a;
+  --op-color-warning: #d97706;
+  --op-color-danger: #dc2626;
+  --op-color-error: #dc2626;
+  --op-color-info: #64748b;
+
+  /* ---- 告警四级（柔和底色 pill：深色文字 + 浅底） ---- */
+  --op-severity-critical: #dc2626;
+  --op-severity-critical-bg: #fdecec;
+  --op-severity-major: #ea580c;
+  --op-severity-major-bg: #fdf0e7;
+  --op-severity-warning: #b45309;
+  --op-severity-warning-bg: #fbf3e1;
+  --op-severity-info: #64748b;
+  --op-severity-info-bg: #eef1f6;
+
+  /* ---- 圆角 ---- */
+  --op-radius-sm: 6px;
+  --op-radius-md: 8px;
+  --op-radius-lg: 10px;
+  --op-radius-xl: 16px;
+
+  /* ---- 阴影 ---- */
+  --op-shadow-card: 0 1px 2px rgba(23, 32, 43, 0.05);
+  --op-shadow-card-hover: 0 4px 12px rgba(23, 32, 43, 0.08);
+  --op-shadow-pop: 0 8px 24px rgba(23, 32, 43, 0.12);
+
+  /* ---- 间距（4px 基准） ---- */
+  --op-space-1: 4px;
+  --op-space-2: 8px;
+  --op-space-3: 12px;
+  --op-space-4: 16px;
+  --op-space-5: 20px;
+  --op-space-6: 24px;
+  --op-space-8: 32px;
+}

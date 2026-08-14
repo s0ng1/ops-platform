@@ -1,0 +1,69 @@
+# 内网运维管理平台 · 全栈一键部署（第 4 期 M3）
+# 与 dev 用的 docker-compose.yml 完全独立：独立容器名（ops-full-*）、独立数据卷（pgdata_full）。
+# 离线交付：镜像经 offline-pack.sh 打成 images.tar，目标机 docker load 后直接 up（镜像已存在不会重新 build）。
+# 启动：cd deploy && docker compose -f docker-compose.full.yml up -d
+# 独立项目名：与 dev 栈（默认项目名 deploy）隔离，否则两者 db 服务会互相顶替重建！
+name: ops-platform-full
+
+services:
+  db:
+    image: ${OPS_DB_IMAGE:-timescale/timescaledb:latest-pg15}
+    container_name: ops-full-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${OPS_DB_NAME:-ops}
+      POSTGRES_USER: ${OPS_DB_USER:-ops}
+      POSTGRES_PASSWORD: ${OPS_DB_PASSWORD:?请在 deploy/.env 设置 OPS_DB_PASSWORD}
+    # 全栈内部通信，不暴露到宿主
+    volumes:
+      - pgdata_full:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-ops} -d $${POSTGRES_DB:-ops}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    image: ops-platform-api:latest
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    container_name: ops-full-api
+    restart: unless-stopped
+    ports:
+      # Syslog / SNMP Trap 接收（UDP，容器内固定 1514/1162，宿主侧可配）
+      - "${OPS_SYSLOG_PORT:-1514}:1514/udp"
+      - "${OPS_TRAP_PORT:-1162}:1162/udp"
+    environment:
+      # 指向本栈 db 服务（服务名解析）
+      OPS_DATABASE_URL: postgresql+psycopg://${OPS_DB_USER:-ops}:${OPS_DB_PASSWORD}@db:5432/${OPS_DB_NAME:-ops}
+      # 生产必须显式配置：换密钥=已加密凭据全部失效
+      OPS_FERNET_KEY: ${OPS_FERNET_KEY:?请在 deploy/.env 设置 OPS_FERNET_KEY（生成方法见 .env.example）}
+      # JWT 签名密钥，生产必须显式设置（≥32 字节随机串，生成方法见 .env.example）
+      OPS_SECRET_KEY: ${OPS_SECRET_KEY:?请在 deploy/.env 设置 OPS_SECRET_KEY（生成方法见 .env.example）}
+      # 首次启动创建的默认管理员（仅首启生效，首登后请立即改密）；口令必须显式设置
+      OPS_ADMIN_USERNAME: ${OPS_ADMIN_USERNAME:-admin}
+      OPS_ADMIN_PASSWORD: ${OPS_ADMIN_PASSWORD:?请在 deploy/.env 设置 OPS_ADMIN_PASSWORD（默认管理员初始密码）}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: ops-platform-web:latest
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    container_name: ops-full-web
+    restart: unless-stopped
+    ports:
+      - "${OPS_WEB_PORT:-8080}:80"
+      # 内网 HTTPS（可选）：准备好证书后取消注释 443 映射，并加一行卷挂载
+      # - "${OPS_WEB_HTTPS_PORT:-8443}:443"
+    # 证书目录挂载（配合上面 443 与 nginx.conf 的 ssl server 块；证书：server.crt / server.key）
+    # volumes:
+    #   - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - api
+
+volumes:
+  pgdata_full:

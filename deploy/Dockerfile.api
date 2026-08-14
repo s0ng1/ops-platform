@@ -1,0 +1,21 @@
+# 后端 API 镜像（内网运维管理平台）
+# 构建上下文为项目根目录：docker compose -f deploy/docker-compose.full.yml build api
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 先装依赖再复制代码，利用 Docker 构建缓存
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 业务代码（DATA_DIR 解析为 /app/data，容器内需可写）
+COPY backend/app ./app
+
+# 非 root 运行；/app 需可写（SQLite 兜底 / fernet.key 自动生成时落盘）
+RUN useradd -m -u 10001 ops && chown -R ops:ops /app
+USER ops
+
+EXPOSE 8100
+
+# 生产环境变量由 compose 注入：OPS_DATABASE_URL、OPS_FERNET_KEY 等
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100"]

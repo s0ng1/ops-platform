@@ -1,0 +1,25 @@
+# 数据库与密钥
+backend/data/
+backend/.env
+deploy/.env
+# 内部开发上下文（含真实内网 IP/凭据/密码，不入库）
+AGENTS.md
+# Python
+backend/.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+# 前端
+frontend/node_modules/
+frontend/dist/
+# 离线打包产物
+deploy/offline/
+# 测试/压测日志
+logs/
+# 手册二进制生成物（.md 为源）
+docs/*.docx
+# 系统/编辑器
+.DS_Store
+*.swp
+.idea/
+.vscode/

@@ -1,0 +1,51 @@
+/* 全局基础样式（设计 token 见 styles/tokens.css，EP 覆盖见 styles/element-overrides.css） */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-size: 14px;
+  color: var(--op-text-primary);
+  background-color: var(--op-bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 数字等宽，避免计数/表格抖动 */
+.num,
+.stat-num,
+.el-table,
+.el-pagination {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 选中文本 */
+::selection {
+  background: var(--op-color-primary-light-8);
+}
+
+/* 细化滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d9e2;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b9c1cf;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
