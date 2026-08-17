@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..core.database import get_db
 from ..models import Device, Metric
+from ..models.metric import utcnow
 from .deps import get_current_user
 
 router = APIRouter(prefix="/api", tags=["指标"])
@@ -97,7 +98,7 @@ def latest_metrics(
     最新值必在最近几个采集周期内。"""
     if db.get(Device, device_id) is None:
         raise HTTPException(status_code=404, detail="设备不存在")
-    since = datetime.utcnow() - timedelta(minutes=10)
+    since = utcnow() - timedelta(minutes=10)
     sub = (
         db.query(Metric.metric, Metric.labels, func.max(Metric.time).label("mt"))
         .filter(Metric.device_id == device_id, Metric.time > since)
@@ -134,7 +135,7 @@ def metrics_catalog(
     加 7 天时间窗：hypertable 全表 GROUP BY 太重；7 天未见的指标多半已停采，不展示。"""
     if db.get(Device, device_id) is None:
         raise HTTPException(status_code=404, detail="设备不存在")
-    since = datetime.utcnow() - timedelta(days=7)
+    since = utcnow() - timedelta(days=7)
     rows = (
         db.query(Metric.metric, Metric.labels, func.count())
         .filter(Metric.device_id == device_id, Metric.time > since)

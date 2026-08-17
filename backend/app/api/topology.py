@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from ..core.database import SessionLocal, get_db
 from ..models import Device, Metric, TopoLink, TopologyLayout
+from ..models.metric import utcnow
 from ..topology.discovery import discover_device_neighbors, resolve_device_id
 from .deps import get_current_user, require_operator
 
@@ -55,7 +56,7 @@ def _latest_traffic(db: Session, device_ids: set[int]) -> dict:
     最新值必落在最近几个采集周期内，10 分钟窗口足够且走 (device_id,time) 索引毫秒级。"""
     if not device_ids:
         return {}
-    since = datetime.utcnow() - timedelta(minutes=10)
+    since = utcnow() - timedelta(minutes=10)
     sub = (
         db.query(Metric.device_id, Metric.metric, Metric.labels, func.max(Metric.time).label("mt"))
         .filter(Metric.device_id.in_(device_ids), Metric.metric.in_(TRAFFIC_METRICS),

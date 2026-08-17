@@ -11,6 +11,9 @@ from .schemas import LoginIn, PasswordChangeIn, TokenOut, UserOut
 
 router = APIRouter(prefix="/api/auth", tags=["认证"])
 
+# 登录时序补偿：用户不存在时也跑一次 PBKDF2，消除「用户不存在 vs 密码错误」的响应时间差
+_DUMMY_HASH = hash_password("timing-equalization-dummy")
+
 
 @router.post("/login", response_model=TokenOut)
 def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
@@ -22,7 +25,13 @@ def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS,
                             f"尝试次数过多，请约 {int(wait) + 1} 秒后重试")
     user = db.query(User).filter(User.username == body.username).first()
-    if user is None or not verify_password(body.password, user.password_hash):
+    if user is None:
+        # 用户不存在也执行一次 PBKDF2，对齐错误密码分支的耗时，避免用户名枚举时序差
+        verify_password(body.password, _DUMMY_HASH)
+        ratelimit.note_failure(ip, body.username)
+        audit.record(body.username, "login_failed", ip=ip)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户名或密码错误")
+    if not verify_password(body.password, user.password_hash):
         ratelimit.note_failure(ip, body.username)
         audit.record(body.username, "login_failed", ip=ip)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户名或密码错误")

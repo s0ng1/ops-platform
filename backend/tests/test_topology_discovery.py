@@ -35,13 +35,13 @@ def test_hex_to_ip():
 def test_lldp_mgmt_map():
     """真机 H3C 后缀结构：timeMark.localPortNum.remIndex.addrSubtype.addrLen.addr（后随 ifSubtype 等段）。"""
     mgmt = {
-        f"{OID_LLDP_REM_MGMT_ADDR}.8633.49.1.1.4.192.168.52.254": "2",
+        f"{OID_LLDP_REM_MGMT_ADDR}.8633.49.1.1.4.203.0.113.254": "2",
         f"{OID_LLDP_REM_MGMT_ADDR}.8633.49.1.2.16.0.0.0.0": "2",  # subtype=2 非 ipv4，忽略
-        f"{OID_LLDP_REM_MGMT_ADDR}.24976.132.1.1.4.172.16.65.179": "2",
+        f"{OID_LLDP_REM_MGMT_ADDR}.24976.132.1.1.4.198.51.100.179": "2",
     }
     assert _lldp_mgmt_map(mgmt) == {
-        "8633.49.1": "192.168.52.254",
-        "24976.132.1": "172.16.65.179",
+        "8633.49.1": "203.0.113.254",
+        "24976.132.1": "198.51.100.179",
     }
     assert _lldp_mgmt_map({}) == {}
 

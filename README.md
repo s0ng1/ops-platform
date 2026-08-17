@@ -2,10 +2,10 @@
 
 自研内网 NMS，对标北塔（Broadview）轻量版。监控网络/安全设备、Windows/Linux 服务器、数据库、应用与中间件，拓扑自动发现 + 手工连线、链路流量监控、阈值/基线告警、配置备份、Syslog/Trap 日志告警、IPAM、报表与大屏。总体方案见 `docs/总体方案.md`。
 
-## 功能总览（第 1~8 期已完成）
+## 功能总览（第 1~10 期已完成）
 
 - **设备管理（CMDB）**：设备 CRUD（唯一性 ip+type，支持一机多对象）、网络设备细分类型（交换机/路由器/防火墙，拓扑图标区分）、凭据管理（SNMP v2c/v3、SSH、数据库账号，Fernet 加密存储）、IP 段自动发现入库
-- **监控采集**（全部无 Agent）：Ping 在线/时延（60s）、SNMP 接口流量/状态 + 设备 CPU/内存（60s，Cisco/华为/H3C 指纹）、Windows SNMP（60s，HOST-RESOURCES-MIB：CPU/内存/磁盘/进程）、Linux SSH（60s，/proc + df）、数据库探针（300s：MySQL 连接数/QPS/TPS/慢查询/主从延迟；Oracle 会话/表空间；SQLServer 连接数/缓存命中率/批请求速率）、应用拨测（60s：HTTP 状态码+关键字 / DNS 解析 / TCP 连通+banner，Nginx stub_status 与 Redis INFO 专项采集）
+- **监控采集**（全部无 Agent）：Ping 在线/时延（60s）、SNMP 接口流量/状态 + 设备 CPU/内存（60s，Cisco/华为/H3C 指纹）、Windows SNMP（60s，HOST-RESOURCES-MIB：CPU/内存/磁盘/进程）、Linux SSH（60s，/proc + df）、数据库探针（300s：MySQL 连接数/QPS/TPS/慢查询/主从延迟；Oracle 会话/表空间；SQLServer 连接数/缓存命中率/批请求速率；PostgreSQL 连接数/连接使用率/缓存命中率）、应用拨测（60s：HTTP 状态码+关键字 / DNS 解析 / TCP 连通+banner，Nginx stub_status 与 Redis INFO 专项采集）
 - **时序存储**：PostgreSQL + TimescaleDB（hypertable 压缩 7 天/保留 30 天，5 分钟连续聚合保留 180 天，实时聚合已启用）
 - **拓扑**：LLDP/CDP 自动发现 + 手工连线，G6 深色画布（自由缩放/平移、编辑模式拖拽摆位/拉线/删链、链路流量标签、链路历史流量曲线、子网/机房分组子视图与独立布局）
 - **告警**：阈值 + 动态基线（同比 7 天同时段 Nσ 偏离）规则引擎（去抖/升级/静默窗口），告警时刻指标快照，规则模板批量套用（28 条内置模板），接口 down 只告曾 up 过的端口，28 条内置规则按设备类型覆盖；通知渠道 SMTP/钉钉/企业微信；操作审计日志
@@ -18,6 +18,7 @@
 - **实时推送**：WebSocket（新告警 + 设备状态变化，进程内广播）
 - **性能**：压测验证 2000 台设备 60s 采集周期仅需 5.8s（余量 10 倍，报告 `docs/压测报告.md`）
 - **权限**：RBAC 三角色 + 用户禁用/改角色（即时生效）
+- **安全**：登录防爆破与账户锁定、密码复杂度、凭据 Fernet 加密、Redis 口令脱敏、应用拨测 SSRF 防护、Syslog/Trap 来源白名单、SSH 指纹 TOFU 校验、配置备份仅 operator 可读、审计日志带来源 IP
 
 ## 快速开始（开发）
 
@@ -52,7 +53,7 @@ cd backend && .venv/bin/python -m pytest -q
 OPS_TEST_DATABASE_URL=postgresql+psycopg://ops:密码@127.0.0.1:5432/ops_test .venv/bin/python -m pytest -q
 ```
 
-当前 225 个用例双跑全过。压测：`python scripts/bench.py --devices 2000 --cycles 3`（独立 bench 库，不碰业务数据）。
+当前 257 个用例全过（默认 SQLite；PG 方言回归见上方命令）。压测：`python scripts/bench.py --devices 2000 --cycles 3`（独立 bench 库，不碰业务数据）。
 
 ## 部署（内网无外网）
 
@@ -90,7 +91,7 @@ backend/app/
 frontend/src/    # Vue 3 + Element Plus + G6 v5 + ECharts（懒加载）
 deploy/          # docker-compose（dev 库）/ docker-compose.full.yml（三服务全栈）/ offline-pack.sh / 部署相关
 scripts/         # bench.py（压测）、resolve_dead_ifdown.py（一次性治理脚本）
-docs/            # 总体方案、各期计划、压测报告、部署手册
+docs/            # 总体方案、各期交付索引、压测/安全审计报告、用户/管理员/部署手册
 ```
 
 ## 关键设计决策

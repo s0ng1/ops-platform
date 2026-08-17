@@ -16,7 +16,7 @@ class FakeOctetString:
 
 
 def test_pretty_gbk_chinese_sysname():
-    # 真机实测：H3C（172.30.255.250/253）sysName 按 GBK 编码返回
+    # 真机实测：H3C 中文 sysName 按 GBK 编码返回
     raw = bytes.fromhex("39b9f1b7fecef1c6f7bdd3c8eb")
     assert _pretty(FakeOctetString(raw)) == "9柜服务器接入"
 

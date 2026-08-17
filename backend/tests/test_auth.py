@@ -12,6 +12,12 @@ def test_login_wrong_password(client):
     assert r.status_code == 401
 
 
+def test_login_unknown_user(client):
+    """不存在用户名同样返回 401（时序补偿后语义不变）。"""
+    r = client.post("/api/auth/login", json={"username": "no_such_user", "password": "whatever1"})
+    assert r.status_code == 401
+
+
 def test_me(client, admin_token):
     r = client.get("/api/auth/me", headers=auth(admin_token))
     assert r.status_code == 200
